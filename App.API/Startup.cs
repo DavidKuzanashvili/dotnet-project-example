@@ -1,4 +1,5 @@
 using App.Domain.Models.Users;
+using App.Infrastructure.Authorization.Configuration;
 using App.Infrastructure.Configuration;
 using App.Infrastructure.Configuration.Core;
 using App.Infrastructure.Configuration.Swagger;
@@ -62,6 +63,13 @@ namespace App.API
             services.AddCors();
             services.AddSwagger();
             services.AddAuthentication();
+
+            //Auth START
+            services.ConfigureIdentity();
+            services.ConfigureJwt(Configuration);
+            services.ConfigureJwtTokenOptions(Configuration);
+            //Auth END
+
             services.Configure<ApiBehaviorOptions>(options =>
             {
                 options.SuppressModelStateInvalidFilter = true;

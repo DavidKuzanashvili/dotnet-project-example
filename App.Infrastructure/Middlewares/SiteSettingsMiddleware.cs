@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using App.Domain.Utils.Settings;
+using App.Infrastructure.Authorization.Interfaces;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace App.Infrastructure.Middlewares
 {
@@ -15,19 +18,19 @@ namespace App.Infrastructure.Middlewares
                 if (token.Count > 0)
                 {
 
-                    //var jwtService = context.RequestServices.GetRequiredService<IAuthService>();
-                    //var jwtTokenGenerator = context.RequestServices.GetRequiredService<IJWTTokenGenerator>();
+                    var jwtService = context.RequestServices.GetRequiredService<IAuthService>();
+                    var jwtTokenGenerator = context.RequestServices.GetRequiredService<IBearerTokenService>();
 
-                    //var parsedToken = token[0].Replace("Bearer ", "");
+                    var parsedToken = token[0].Replace("Bearer ", "");
 
-                    //if (jwtTokenGenerator.ValidateToken(parsedToken))
-                    //{
-                    //    var userClaims = await jwtService.GetUserClaimsAsync(parsedToken);
+                    if (jwtTokenGenerator.ValidateToken(parsedToken))
+                    {
+                        var userClaims = await jwtService.GetUserClaimsAsync(parsedToken);
 
-                    //    context.RequestServices.GetService<UserSettings>().UserId = userClaims.UserId;
-                    //    context.RequestServices.GetService<UserSettings>().UserName = userClaims.UserName;
-                    //    context.RequestServices.GetService<UserSettings>().UserRoles = userClaims.UserRoles;
-                    //}
+                        context.RequestServices.GetService<UserSettings>().UserId = userClaims.UserId;
+                        context.RequestServices.GetService<UserSettings>().UserName = userClaims.UserName;
+                        context.RequestServices.GetService<UserSettings>().UserRoles = userClaims.UserRoles;
+                    }
                 }
 
                 await next();
