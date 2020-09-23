@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Modules\Authorization\" />
+    <Folder Include="..\..\..\..\..\..\..\..\O%2527Brands\Desktop\David\Projects\leavingstone\DotNETCore\App\App.Infrastructure\Authorization\" />
   </ItemGroup>
 
 </Project>

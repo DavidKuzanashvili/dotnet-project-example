@@ -10,6 +10,6 @@ namespace App.Infrastructure.Authorization.Interfaces
         Task<JwtSecurityToken> GenerateJwtTokenAsync(User user, bool isRefreshToken = false);
         bool ValidateToken(string token, bool isRefreshToken = false);
         string GetUserId(string token);
-        string[] GetUserRole(string token);
+        string[] GetUserRoles(string token);
     }
 }
