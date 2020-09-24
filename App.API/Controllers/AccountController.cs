@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NETCore.MailKit.Core;
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
 namespace App.API.Controllers
@@ -23,7 +24,9 @@ namespace App.API.Controllers
         private readonly IEmailService _emailService;
         private readonly UserManager<User> _userManager;
 
-        public AccountController(IAuthService authService, IEmailService emailService, UserManager<User> userManager)
+        public AccountController(IAuthService authService,
+                                 IEmailService emailService,
+                                 UserManager<User> userManager)
         {
             _authService = authService;
             _emailService = emailService;
@@ -64,11 +67,9 @@ namespace App.API.Controllers
                 if (!ModelState.IsValid)
                 {
                     var errors = ModelState.GetErrors();
-                    return UnprocessableEntity(errors);
                 }
 
                 var result = await _authService.RegisterAsync(model, UserRole.Admin);
-                await SendEmailAsync(model.Email, result);
 
                 return Ok(result);
             }
@@ -83,7 +84,7 @@ namespace App.API.Controllers
         [HttpPost]
         [Authorize(Roles = UserRoles.User)]
         [Route("register-user")]
-        public async Task<IActionResult> RegisterUserAsync(Register model)
+        public async Task<IActionResult> RegisterUserAsync(Register model, [Required] string returnUrl)
         {
             try
             {
@@ -94,7 +95,7 @@ namespace App.API.Controllers
                 }
 
                 var result = await _authService.RegisterAsync(model, UserRole.User);
-                await SendEmailAsync(model.Email, result);
+                await SendEmailAsync(model.Email, result, returnUrl);
 
                 return Ok(result);
             }
@@ -106,7 +107,27 @@ namespace App.API.Controllers
             }
         }
 
-        private async Task SendEmailAsync(string email, AuthResponse result)
+        [HttpGet]
+        [Route("verifyemail")]
+        public async Task<IActionResult> VerifyEmail(string userId, string code, string returnUrl)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+            {
+                return Redirect(returnUrl + "?succeeded=false");
+            }
+
+            var confirmationResult = await _userManager.ConfirmEmailAsync(user, code);
+            if (confirmationResult.Succeeded)
+            {
+                return Redirect(returnUrl + "?succeeded=true");
+            }
+
+            return Redirect(returnUrl + "?succeeded=false");
+        }
+
+        private async Task SendEmailAsync(string email, AuthResponse result, string returnUrl)
         {
             try
             {
@@ -115,7 +136,7 @@ namespace App.API.Controllers
 
                 var url = Url.Action("verifyemail",
                                      "Account",
-                                     new { userId = user.Id, code },
+                                     new { userId = user.Id, code, returnUrl },
                                      Request.Scheme,
                                      Request.Host.ToString());
 
