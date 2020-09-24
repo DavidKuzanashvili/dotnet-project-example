@@ -11,9 +11,9 @@ namespace App.Infrastructure.Authorization.Interfaces
     {
         Task<AuthResponse> LoginAsync(Login model);
         Task<AuthResponse> RegisterAsync(Register model, UserRole role);
-        Task<AuthResponse> GetRefreshTokenAsync(string refreshToken);
         Task<AuthResponse> ChangePasswordAsync(ChangePassword model);
         Task<UserSettings> GetUserClaimsAsync(string token);
         Task<string> GetForgotPasswordTokenAsync(ForgotPassword model);
+        Task<AuthResponse> RefreshTokenAsync(string refreshToken);
     }
 }

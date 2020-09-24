@@ -8,6 +8,7 @@ using App.Infrastructure.Authorization.Models.Registration;
 using App.Infrastructure.Authorization.Models.Response;
 using App.Infrastructure.Utils.StaticContent;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -103,6 +104,116 @@ namespace App.API.Controllers
             {
                 Logger.LogError(ex.ToString());
 
+                return BadRequest();
+            }
+        }
+
+        [HttpPost]
+        [Route("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(ForgotPassword model)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var user = await _userManager.FindByNameAsync(model.Email);
+                    if (user == null) return NotFound();
+
+                    var token = await _authService.GetForgotPasswordTokenAsync(model);
+
+                    var url = $"{model.ReturnUrl}?Email={model.Email}&Token={token}";
+                    try
+                    {
+                        string html = string.Empty;
+                        string description = string.Empty;
+                        string btnText = string.Empty;
+                        if (LangCode.ToLower() == "en")
+                        {
+                            description = "Please, click the following link to reset your password: ";
+                            btnText = "Restore Password";
+                        }
+                        else
+                        {
+                            description = "პაროლის აღსადგენად გადადი შემდეგ ლინკზე: ";
+                            btnText = "აღადგინე პაროლი";
+                        }
+
+                        html = $"<p>{description} </p>" +
+                                $"<a href={url}>{btnText}</a>";
+
+                        await _emailService.SendAsync(model.Email, "ITechnics Reset Password", html, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError(ex.ToString());
+                        ModelState.AddModelError("MailNotSent", "ConfirmationEmail.NotSent");
+
+                        var smtperrors = ModelState.GetErrors();
+                        return BadRequest(smtperrors);
+                    }
+
+                    return Ok();
+                }
+
+                var errors = ModelState.GetErrors();
+                return UnprocessableEntity(errors);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex.ToString());
+                return BadRequest();
+            }
+        }
+
+        [HttpPut]
+        [Route("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPassword model)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var user = await _userManager.FindByEmailAsync(model.Email);
+
+                    var result = await _userManager.ResetPasswordAsync(user, model.Token, model.Password);
+
+                    if (result.Succeeded)
+                        return Ok();
+
+                    return BadRequest();
+                }
+
+                var errors = ModelState.GetErrors();
+                return UnprocessableEntity(errors);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex.ToString());
+                return BadRequest();
+            }
+        }
+
+        [HttpGet]
+        [Route("new-token")]
+        public async Task<IActionResult> RefreshToken(string RefreshToken)
+        {
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(RefreshToken))
+                {
+                    var response = await _authService.RefreshTokenAsync(RefreshToken);
+
+                    if (response.Succeeded)
+                        return Ok(response);
+
+                    return StatusCode(StatusCodes.Status406NotAcceptable, response);
+                }
+
+                return UnprocessableEntity();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex.ToString());
                 return BadRequest();
             }
         }

@@ -52,7 +52,7 @@ namespace App.Infrastructure.Authorization.Services
                 return result;
             }
 
-            result.Succeded = true;
+            result.Succeeded = true;
 
             return result;
         }
@@ -64,29 +64,6 @@ namespace App.Infrastructure.Authorization.Services
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
 
             return token;
-        }
-
-        public async Task<AuthResponse> GetRefreshTokenAsync(string refreshToken)
-        {
-            var result = new AuthResponse();
-
-            var tokenIsValid = _bearerTokenService.ValidateToken(refreshToken, true);
-
-            if (tokenIsValid)
-            {
-                var userId = _bearerTokenService.GetUserId(refreshToken);
-                var user = await _userManager.FindByIdAsync(userId);
-
-                if (user != null)
-                {
-                    var token = await GetJwtTokenAsync(user);
-                    result.TokenResponse = token;
-                    result.Succeded = true;
-
-                    return result;
-                }
-            }
-            return result;
         }
 
         public async Task<UserSettings> GetUserClaimsAsync(string token)
@@ -115,7 +92,7 @@ namespace App.Infrastructure.Authorization.Services
 
             if (!signInResult.Succeeded)
             {
-                result.Succeded = false;
+                result.Succeeded = false;
 
                 // Generate error messages
             }
@@ -139,7 +116,7 @@ namespace App.Infrastructure.Authorization.Services
 
             if (!registrationResponse.Succeeded)
             {
-                result.Succeded = false;
+                result.Succeeded = false;
                 result.Errors = GetErrors(registrationResponse);
                 _logger.LogError("Registration FAILED: " + registrationResponse.ToString());
 
@@ -157,7 +134,7 @@ namespace App.Infrastructure.Authorization.Services
                 return result;
             }
 
-            result.Succeded = true;
+            result.Succeeded = true;
             result.TokenResponse = await GetJwtTokenAsync(user);
 
             return result;
@@ -193,6 +170,29 @@ namespace App.Infrastructure.Authorization.Services
                 });
             }
 
+            return result;
+        }
+
+        public async Task<AuthResponse> RefreshTokenAsync(string refreshToken)
+        {
+            var result = new AuthResponse();
+
+            var tokenIsValid = _bearerTokenService.ValidateToken(refreshToken, true);
+
+            if (tokenIsValid)
+            {
+                var userId = _bearerTokenService.GetUserId(refreshToken);
+                var user = await _userManager.FindByIdAsync(userId);
+
+                if (user != null)
+                {
+                    var token = await GetJwtTokenAsync(user);
+                    result.TokenResponse = token;
+                    result.Succeeded = true;
+
+                    return result;
+                }
+            }
             return result;
         }
     }

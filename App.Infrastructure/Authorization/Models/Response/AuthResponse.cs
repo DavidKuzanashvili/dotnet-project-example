@@ -9,7 +9,7 @@ namespace App.Infrastructure.Authorization.Models.Response
             Errors = new List<AuthErrorResponse>();
         }
 
-        public bool Succeded { get; set; }
+        public bool Succeeded { get; set; }
         public List<AuthErrorResponse> Errors { get; set; }
         public TokenResponse TokenResponse { get; set; }
     }
