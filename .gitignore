@@ -31,7 +31,7 @@ bld/
 App.API/wwwroot/uploads
 
 #Ignore local development settings
-App.API/appsettings.Development.json
+App.API/appsettings.json
 
 appsettings.Development.json
 
