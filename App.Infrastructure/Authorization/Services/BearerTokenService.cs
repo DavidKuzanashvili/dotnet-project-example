@@ -1,4 +1,4 @@
-﻿using App.Domain.Models.Users;
+﻿using App.Domain.Entities.Users;
 using App.Infrastructure.Authorization.Interfaces;
 using App.Infrastructure.Authorization.Settings;
 using Microsoft.AspNetCore.Identity;
@@ -18,16 +18,19 @@ namespace App.Infrastructure.Authorization.Services
     public class BearerTokenService : IBearerTokenService
     {
         private readonly JWTSettings _jwtSettings;
+        private readonly TokenValidationParameters _tokenValidationParameters;
         private readonly UserManager<User> _userManager;
         private readonly ILogger<BearerTokenService> _logger;
 
         public BearerTokenService(
             IOptions<JWTSettings> jwtSettings,
             UserManager<User> userManager,
+            TokenValidationParameters tokenValidationParameters,
             ILogger<BearerTokenService> logger)
         {
             _jwtSettings = jwtSettings.Value;
             _userManager = userManager;
+            _tokenValidationParameters = tokenValidationParameters;
             _logger = logger;
         }
 
@@ -60,16 +63,8 @@ namespace App.Infrastructure.Authorization.Services
                 if (jwtToken == null)
                     return false;
 
-                TokenValidationParameters parameters = new TokenValidationParameters()
-                {
-                    RequireExpirationTime = true,
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ClockSkew = TimeSpan.Zero,
-                };
                 ClaimsPrincipal principal = tokenHandler.ValidateToken(token,
-                      parameters, out SecurityToken securityToken);
+                      _tokenValidationParameters, out SecurityToken securityToken);
 
                 return true;
             }
@@ -114,7 +109,7 @@ namespace App.Infrastructure.Authorization.Services
                 claims.Add(new Claim(ClaimTypes.MobilePhone, user.PhoneNumber));
 
             if (!string.IsNullOrWhiteSpace(user.Id))
-                claims.Add(new Claim(JwtRegisteredClaimNames.UniqueName, user.Id));
+                claims.Add(new Claim(JwtRegisteredClaimNames.Sub, user.Id));
 
             if (!string.IsNullOrWhiteSpace(user.FullName))
                 claims.Add(new Claim(JwtRegisteredClaimNames.GivenName, user.FullName));

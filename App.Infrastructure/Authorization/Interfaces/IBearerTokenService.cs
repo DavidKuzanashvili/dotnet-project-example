@@ -1,4 +1,4 @@
-﻿using App.Domain.Models.Users;
+﻿using App.Domain.Entities.Users;
 using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+﻿using App.Domain.Models.Shared.Response;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Linq;
 
 namespace App.API.Utils.Extensions
@@ -9,15 +10,15 @@ namespace App.API.Utils.Extensions
         {
             var errors = modelstate
                 .Where(x => x.Value.Errors.Count > 0)
-                .Select(x => new
+                .Select(x => new ErrorKeyValuePair
                 {
-                    key = x.Key,
-                    values = x.Value.Errors.Select(t => t.ErrorMessage).ToArray()
+                    Key = x.Key,
+                    Values = x.Value.Errors.Select(t => t.ErrorMessage).ToArray()
                 }).ToList();
 
-            var result = new
+            var result = new ErrorResponse
             {
-                errors,
+                Errors = errors,
             };
 
             return result;

@@ -6,6 +6,7 @@ namespace App.Infrastructure.Authorization.Models.Response
     {
         public AuthResponse()
         {
+            Succeeded = true;
             Errors = new List<AuthErrorResponse>();
         }
 

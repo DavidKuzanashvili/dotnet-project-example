@@ -1,4 +1,4 @@
-﻿using App.Domain.Models.Users;
+﻿using App.Domain.Entities.Users;
 using App.Infrastructure.Authorization.Models.Registration;
 
 namespace App.Infrastructure.Authorization.Utils.Transformers
@@ -9,6 +9,7 @@ namespace App.Infrastructure.Authorization.Utils.Transformers
         {
             return new User()
             {
+                UserName = model.Email,
                 FirstName = model.FirstName,
                 LastName = model.LastName,
                 Age = model.Age,

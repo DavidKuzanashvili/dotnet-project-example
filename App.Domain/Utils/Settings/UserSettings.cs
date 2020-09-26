@@ -4,13 +4,11 @@
     {
         public UserSettings()
         {
-            UserId = "";
-            UserName = "";
-            UserRoles = new string[0];
+            UserId = string.Empty;
+            Roles = new string[0];
         }
-        public string UserId { get; set; }
-        public string UserName { get; set; }
-        public string[] UserRoles { get; set; }
-    }
 
+        public string UserId { get; set; }
+        public string[] Roles { get; set; }
+    }
 }

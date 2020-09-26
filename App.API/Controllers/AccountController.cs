@@ -1,11 +1,13 @@
 ﻿using App.API.Controllers.Shared;
 using App.API.Utils.Extensions;
-using App.Domain.Models.Users;
+using App.Domain.Entities.Users;
+using App.Domain.Interfaces.Users;
 using App.Infrastructure.Authorization.Enums;
 using App.Infrastructure.Authorization.Interfaces;
 using App.Infrastructure.Authorization.Models.Login;
 using App.Infrastructure.Authorization.Models.Registration;
 using App.Infrastructure.Authorization.Models.Response;
+using App.Infrastructure.Exceptions.Shared;
 using App.Infrastructure.Utils.StaticContent;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -23,19 +25,25 @@ namespace App.API.Controllers
     {
         private readonly IAuthService _authService;
         private readonly IEmailService _emailService;
+        private readonly IUserService _userService;
         private readonly UserManager<User> _userManager;
+
 
         public AccountController(IAuthService authService,
                                  IEmailService emailService,
+                                 IUserService userService,
                                  UserManager<User> userManager)
         {
             _authService = authService;
             _emailService = emailService;
+            _userService = userService;
             _userManager = userManager;
         }
 
         [HttpPost]
         [Route("login")]
+        [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> LoginAsync(Login model)
         {
             try
@@ -47,6 +55,8 @@ namespace App.API.Controllers
                 }
 
                 var result = await _authService.LoginAsync(model);
+
+                if (result.Succeeded) return UnprocessableEntity(result);
 
                 return Ok(result);
             }
@@ -61,6 +71,8 @@ namespace App.API.Controllers
         [HttpPost]
         [Authorize(Roles = UserRoles.Admin)]
         [Route("register-admin")]
+        [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> RegisterAdminAsync(Register model)
         {
             try
@@ -68,9 +80,13 @@ namespace App.API.Controllers
                 if (!ModelState.IsValid)
                 {
                     var errors = ModelState.GetErrors();
+
+                    return UnprocessableEntity(errors);
                 }
 
                 var result = await _authService.RegisterAsync(model, UserRole.Admin);
+
+                if (!result.Succeeded) return UnprocessableEntity(result);
 
                 return Ok(result);
             }
@@ -83,8 +99,9 @@ namespace App.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = UserRoles.User)]
         [Route("register-user")]
+        [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> RegisterUserAsync(Register model, [Required] string returnUrl)
         {
             try
@@ -96,6 +113,7 @@ namespace App.API.Controllers
                 }
 
                 var result = await _authService.RegisterAsync(model, UserRole.User);
+                if (!result.Succeeded) return UnprocessableEntity(result);
                 await SendEmailAsync(model.Email, result, returnUrl);
 
                 return Ok(result);
@@ -108,8 +126,39 @@ namespace App.API.Controllers
             }
         }
 
+        [HttpDelete("{userId}")]
+        [Authorize(Roles = UserRoles.Admin)]
+        [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> DeleteAsync(string userId)
+        {
+            try
+            {
+                var result = await _userService.DeleteByIdAsync(userId);
+
+                if (!result.Data.Succeeded) return UnprocessableEntity(result);
+
+                return Ok();
+            }
+            catch (EntityNotFoundException ex)
+            {
+                Logger.LogError(ex.ToString());
+
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex.ToString());
+
+                return BadRequest();
+            }
+        }
+
         [HttpPost]
         [Route("forgot-password")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> ForgotPassword(ForgotPassword model)
         {
             try
@@ -167,6 +216,8 @@ namespace App.API.Controllers
 
         [HttpPut]
         [Route("reset-password")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> ResetPassword(ResetPassword model)
         {
             try
@@ -195,6 +246,8 @@ namespace App.API.Controllers
 
         [HttpGet]
         [Route("new-token")]
+        [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> RefreshToken(string RefreshToken)
         {
             try
@@ -219,7 +272,9 @@ namespace App.API.Controllers
         }
 
         [HttpGet]
-        [Route("verifyemail")]
+        [Route("verify-email")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> VerifyEmail(string userId, string code, string returnUrl)
         {
             var user = await _userManager.FindByIdAsync(userId);

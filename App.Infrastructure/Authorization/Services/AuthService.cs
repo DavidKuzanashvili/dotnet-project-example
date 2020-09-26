@@ -1,5 +1,4 @@
-﻿using App.Domain.Models.Users;
-using App.Domain.Utils.Settings;
+﻿using App.Domain.Entities.Users;
 using App.Infrastructure.Authorization.Enums;
 using App.Infrastructure.Authorization.Interfaces;
 using App.Infrastructure.Authorization.Models.Login;
@@ -66,24 +65,6 @@ namespace App.Infrastructure.Authorization.Services
             return token;
         }
 
-        public async Task<UserSettings> GetUserClaimsAsync(string token)
-        {
-            var userId = _bearerTokenService.GetUserId(token);
-            var roles = _bearerTokenService.GetUserRoles(token);
-
-            var user = await _userManager.FindByIdAsync(userId);
-            var username = user.FullName;
-
-            var result = new UserSettings()
-            {
-                UserId = userId,
-                UserRoles = roles,
-                UserName = username
-            };
-
-            return result;
-        }
-
         public async Task<AuthResponse> LoginAsync(Login model)
         {
             var signInResult = await _signInManager.PasswordSignInAsync(model.Email, model.Password,
@@ -94,7 +75,7 @@ namespace App.Infrastructure.Authorization.Services
             {
                 result.Succeeded = false;
 
-                // Generate error messages
+                result.Errors = GetSignInErrors(signInResult);
             }
             else
             {
@@ -111,6 +92,8 @@ namespace App.Infrastructure.Authorization.Services
             var result = new AuthResponse();
 
             var user = RegistrationTransformer.Transform(model);
+            user.EmailConfirmed = role == UserRole.Admin;
+            user.PhoneNumberConfirmed = role == UserRole.Admin;
 
             var registrationResponse = await _userManager.CreateAsync(user, model.Password);
 
@@ -137,6 +120,29 @@ namespace App.Infrastructure.Authorization.Services
             result.Succeeded = true;
             result.TokenResponse = await GetJwtTokenAsync(user);
 
+            return result;
+        }
+
+        public async Task<AuthResponse> RefreshTokenAsync(string refreshToken)
+        {
+            var result = new AuthResponse();
+
+            var tokenIsValid = _bearerTokenService.ValidateToken(refreshToken, true);
+
+            if (tokenIsValid)
+            {
+                var userId = _bearerTokenService.GetUserId(refreshToken);
+                var user = await _userManager.FindByIdAsync(userId);
+
+                if (user != null)
+                {
+                    var token = await GetJwtTokenAsync(user);
+                    result.TokenResponse = token;
+                    result.Succeeded = true;
+
+                    return result;
+                }
+            }
             return result;
         }
 
@@ -173,26 +179,37 @@ namespace App.Infrastructure.Authorization.Services
             return result;
         }
 
-        public async Task<AuthResponse> RefreshTokenAsync(string refreshToken)
+        private List<AuthErrorResponse> GetSignInErrors(SignInResult model)
         {
-            var result = new AuthResponse();
+            var result = new List<AuthErrorResponse>();
 
-            var tokenIsValid = _bearerTokenService.ValidateToken(refreshToken, true);
-
-            if (tokenIsValid)
+            if (model.IsLockedOut)
             {
-                var userId = _bearerTokenService.GetUserId(refreshToken);
-                var user = await _userManager.FindByIdAsync(userId);
-
-                if (user != null)
+                result.Add(new AuthErrorResponse()
                 {
-                    var token = await GetJwtTokenAsync(user);
-                    result.TokenResponse = token;
-                    result.Succeeded = true;
-
-                    return result;
-                }
+                    Key = "LockedOut",
+                    Value = "User.LockedOut"
+                });
             }
+
+            if (model.IsNotAllowed)
+            {
+                result.Add(new AuthErrorResponse()
+                {
+                    Key = "NotAllowed",
+                    Value = "User.NotAllowed"
+                });
+            }
+
+            if (model.RequiresTwoFactor)
+            {
+                result.Add(new AuthErrorResponse()
+                {
+                    Key = "RequiresTwoFactor",
+                    Value = "User.RequiresTwoFactor"
+                });
+            }
+
             return result;
         }
     }

@@ -23,12 +23,9 @@
     </PackageReference>
     <PackageReference Include="NETCore.MailKit" Version="2.0.3" />
     <PackageReference Include="Serilog.Extensions.Logging.File" Version="2.0.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.2" />
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="5.6.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="..\..\..\..\..\..\..\..\O%2527Brands\Desktop\David\Projects\leavingstone\DotNETCore\App\App.Infrastructure\Authorization\" />
   </ItemGroup>
 
 </Project>

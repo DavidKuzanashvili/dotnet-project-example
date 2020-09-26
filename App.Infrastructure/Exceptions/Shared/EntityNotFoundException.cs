@@ -1,0 +1,24 @@
+﻿using System;
+
+namespace App.Infrastructure.Exceptions.Shared
+{
+    public class EntityNotFoundException : Exception
+    {
+        public EntityNotFoundException()
+            : base("")
+        {
+
+        }
+
+        public EntityNotFoundException(string message)
+            : base(message)
+        {
+
+        }
+
+        public EntityNotFoundException(string message, Exception inner)
+            : base(message, inner)
+        {
+        }
+    }
+}

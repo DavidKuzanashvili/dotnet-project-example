@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using App.Domain.Utils.Settings;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Linq;
+using System.Security.Claims;
 
 namespace App.API.Controllers.Shared
 {
@@ -12,5 +15,20 @@ namespace App.API.Controllers.Shared
 
         protected ILogger<BaseController> Logger =>
             HttpContext.RequestServices.GetService<ILogger<BaseController>>();
+
+        protected UserSettings GetUserSettings()
+        {
+            var userId = User.FindFirstValue("sub");
+
+            var result = new UserSettings()
+            {
+                UserId = userId,
+                Roles = User.FindAll(ClaimTypes.Role)
+                    .Select(x => x.Value)
+                    .ToArray()
+            };
+
+            return result;
+        }
     }
 }

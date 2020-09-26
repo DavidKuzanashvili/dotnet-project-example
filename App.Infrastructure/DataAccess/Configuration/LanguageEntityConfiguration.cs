@@ -1,4 +1,4 @@
-﻿using App.Domain.Models.Languages;
+﻿using App.Domain.Entities.Languages;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

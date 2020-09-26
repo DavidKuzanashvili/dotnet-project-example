@@ -1,4 +1,6 @@
-﻿using App.Infrastructure.Authorization.Settings;
+﻿using App.Infrastructure.Authorization.Interfaces;
+using App.Infrastructure.Authorization.Services;
+using App.Infrastructure.Authorization.Settings;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
@@ -37,6 +39,7 @@ namespace App.Infrastructure.Authorization.Configuration
             };
 
             services.AddSingleton(tokenValidationParameters);
+            services.AddScoped<IBearerTokenService, BearerTokenService>();
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); // => remove default claims
 
             return services.AddAuthentication(options =>
@@ -51,6 +54,7 @@ namespace App.Infrastructure.Authorization.Configuration
                 cfg.SaveToken = true;
                 cfg.TokenValidationParameters = tokenValidationParameters;
             });
+
         }
     }
 }

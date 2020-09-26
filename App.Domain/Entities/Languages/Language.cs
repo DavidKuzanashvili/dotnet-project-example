@@ -1,4 +1,4 @@
-﻿namespace App.Domain.Models.Languages
+﻿namespace App.Domain.Entities.Languages
 {
     public class Language
     {

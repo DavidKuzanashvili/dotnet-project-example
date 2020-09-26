@@ -7,7 +7,7 @@ namespace App.Infrastructure.Authorization.Models.Registration
         [Required(ErrorMessage = "Email.Required")]
         [EmailAddress(ErrorMessage = "Email.Invalid")]
         public string Email { get; set; }
-        [Phone(ErrorMessage = "Email.Invalid")]
+        [Phone(ErrorMessage = "PhoneNumber.Invalid")]
         public string PhoneNumber { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }

@@ -1,10 +1,12 @@
-using App.Domain.Models.Users;
+using App.Domain.Entities.Users;
 using App.Infrastructure.Authorization.Configuration;
 using App.Infrastructure.Configuration;
 using App.Infrastructure.Configuration.Core;
+using App.Infrastructure.Configuration.DIServices;
 using App.Infrastructure.Configuration.Swagger;
 using App.Infrastructure.DataAccess;
-using App.Infrastructure.Middlewares;
+using App.Infrastructure.DataAccess.Seeders;
+using App.Infrastructure.Utils.Helpers.Uploaders;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -76,10 +78,16 @@ namespace App.API
             });
 
             Configuration.ConfigureCoreSettings();
+            services.AddAppDIServices();
+            services.AddUploadDIService();
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
+            ILoggerFactory loggerFactory, AppDbContext dbContext)
         {
+            dbContext.Database.EnsureCreated();
+            dbContext.SeedUserRoles();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -99,10 +107,6 @@ namespace App.API
 
             app.UseAuthentication();
             app.UseAuthorization();
-
-            // Custom middlewares START
-            app.UseSiteSettings();
-            // Custom middlewares END
 
             app.UseEndpoints(endpoints =>
             {
