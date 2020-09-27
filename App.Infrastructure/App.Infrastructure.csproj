@@ -5,6 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Migrations\20200927101118_Blogs.cs" />
+    <Compile Remove="Migrations\20200927101118_Blogs.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\App.Domain\App.Domain.csproj" />
   </ItemGroup>
 

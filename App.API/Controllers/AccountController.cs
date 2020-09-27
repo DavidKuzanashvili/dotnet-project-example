@@ -190,7 +190,7 @@ namespace App.API.Controllers
                         html = $"<p>{description} </p>" +
                                 $"<a href={url}>{btnText}</a>";
 
-                        await _emailService.SendAsync(model.Email, "ITechnics Reset Password", html, true);
+                        await _emailService.SendAsync(model.Email, "App Reset Password", html, true);
                     }
                     catch (Exception ex)
                     {

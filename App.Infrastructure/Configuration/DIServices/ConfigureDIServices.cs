@@ -1,5 +1,7 @@
-﻿using App.Domain.Interfaces.Languages;
+﻿using App.Domain.Interfaces.Info;
+using App.Domain.Interfaces.Languages;
 using App.Domain.Interfaces.Users;
+using App.Infrastructure.Services.Info;
 using App.Infrastructure.Services.Languages;
 using App.Infrastructure.Services.Users;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +15,7 @@ namespace App.Infrastructure.Configuration.DIServices
             services.AddFluentValidationDIServices();
             services.AddScoped<ILanguageService, LangugeService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IBlogService, BlogService>();
 
             return services;
         }

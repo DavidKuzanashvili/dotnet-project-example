@@ -79,7 +79,7 @@ namespace App.Infrastructure.Authorization.Services
         {
             var tokenData = ReadTokenData(token);
             var userId = tokenData.Claims
-                .Where(x => x.Type == JwtRegisteredClaimNames.UniqueName)
+                .Where(x => x.Type == JwtRegisteredClaimNames.Sub)
                 .Select(x => x.Value)
                 .FirstOrDefault();
 
